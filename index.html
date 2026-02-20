@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tapple-Like Word Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #222;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .game {
+      background: #333;
+      padding: 20px 24px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      max-width: 700px;
+      width: 100%;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 0;
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .category {
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .timer {
+      font-size: 1.4rem;
+      font-weight: bold;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: #111;
+      border: 2px solid #555;
+      min-width: 70px;
+      text-align: center;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 10px 0 16px;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      background: #1976d2;
+      color: #fff;
+      font-size: 0.95rem;
+      transition: background 0.2s, transform 0.05s;
+    }
+
+    button:hover {
+      background: #1565c0;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    button.secondary {
+      background: #555;
+    }
+
+    button.secondary:hover {
+      background: #666;
+    }
+
+    .letters {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin: 16px 0;
+    }
+
+    .letter {
+      background: #444;
+      border-radius: 6px;
+      padding: 8px 0;
+      text-align: center;
+      font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s, transform 0.05s, opacity 0.2s;
+    }
+
+    .letter.used {
+      background: #222;
+      color: #777;
+      opacity: 0.45;
+      cursor: default;
+      transform: none !important;
+    }
+
+    .letter:active {
+      transform: scale(0.92);
+      background: #0288d1;
+    }
+
+    .bottom {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #555;
+      background: #222;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+
+    .status {
+      margin-top: 10px;
+      min-height: 22px;
+      font-size: 0.95rem;
+      color: #fdd835;
+    }
+
+    .log {
+      margin-top: 12px;
+      max-height: 150px;
+      overflow-y: auto;
+      background: #222;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    .log-entry {
+      margin-bottom: 4px;
+    }
+
+    .log-letter {
+      font-weight: bold;
+      color: #4fc3f7;
+    }
+
+    .log-word {
+      font-weight: bold;
+      color: #c5e1a5;
+    }
+
+    .highlight {
+      color: #4caf50;
+    }
+
+    .warning {
+      color: #ef9a9a;
+    }
+
+    @media (max-width: 600px) {
+      .letters {
+        grid-template-columns: repeat(6, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game">
+    <h1>Tapple-Style Word Game</h1>
+
+    <div class="top-row">
+      <div class="category" id="categoryLabel">Category: (none yet)</div>
+      <div class="timer" id="timerDisplay">10</div>
+    </div>
+
+    <div class="controls">
+      <button id="newCategoryBtn">New Category</button>
+      <button id="startRoundBtn">Start Round</button>
+      <button id="resetLettersBtn" class="secondary">Reset Letters</button>
+    </div>
+
+    <div class="letters" id="lettersContainer">
+      <!-- JS will generate the A–Z buttons -->
+    </div>
+
+    <div class="bottom">
+      <input
+        type="text"
+        id="answerInput"
+        placeholder="Type your answer, then click its first letter"
+        autocomplete="off"
+      />
+      <button id="submitAnswerBtn">Submit</button>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <div class="log" id="log"></div>
+  </div>
+
+  <script>
+    // Simple category list – you can add/remove categories here
+    const categories = [
+      "Fruits",
+      "Animals",
+      "Countries",
+      "Sports",
+      "Jobs",
+      "Movies",
+      "School subjects",
+      "Things in a kitchen",
+      "Things that are cold",
+      "Things that are hot",
+      "Things that use electricity",
+      "Words with double letters"
+    ];
+
+    const roundTimeSeconds = 10;
+    let timer = null;
+    let timeLeft = roundTimeSeconds;
+    let currentCategory = null;
+    let usedLetters = new Set();
+    let roundActive = false;
+
+    const categoryLabel = document.getElementById("categoryLabel");
+    const timerDisplay = document.getElementById("timerDisplay");
+    const lettersContainer = document.getElementById("lettersContainer");
+    const statusDiv = document.getElementById("status");
+    const logDiv = document.getElementById("log");
+    const answerInput = document.getElementById("answerInput");
+
+    const newCategoryBtn = document.getElementById("newCategoryBtn");
+    const startRoundBtn = document.getElementById("startRoundBtn");
+    const resetLettersBtn = document.getElementById("resetLettersBtn");
+    const submitAnswerBtn = document.getElementById("submitAnswerBtn");
+
+    function createLetterButtons() {
+      const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+      lettersContainer.innerHTML = "";
+      letters.forEach((ch) => {
+        const div = document.createElement("div");
+        div.className = "letter";
+        div.textContent = ch;
+        div.dataset.letter = ch;
+        div.addEventListener("click", () => handleLetterClick(ch));
+        lettersContainer.appendChild(div);
+      });
+    }
+
+    function pickRandomCategory() {
+      const idx = Math.floor(Math.random() * categories.length);
+      currentCategory = categories[idx];
+      categoryLabel.textContent = "Category: " + currentCategory;
+      statusDiv.textContent = "Explain the category if needed, then click Start Round.";
+      statusDiv.className = "status highlight";
+    }
+
+    function resetLetters() {
+      usedLetters.clear();
+      document.querySelectorAll(".letter").forEach((el) => {
+        el.classList.remove("used");
+      });
+    }
+
+    function startRound() {
+      if (!currentCategory) {
+        statusDiv.textContent = "Pick a category first.";
+        statusDiv.className = "status warning";
+        return;
+      }
+      roundActive = true;
+      resetLetters();
+      clearLog();
+      resetTimer();
+      startTimer();
+      statusDiv.textContent = "Round started! Say an answer, click its first letter, then pass to the next player.";
+      statusDiv.className = "status highlight";
+      answerInput.focus();
+    }
+
+    function resetTimer() {
+      clearTimer();
+      timeLeft = roundTimeSeconds;
+      timerDisplay.textContent = timeLeft;
+    }
+
+    function startTimer() {
+      clearTimer();
+      timer = setInterval(() => {
+        timeLeft -= 1;
+        timerDisplay.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearTimer();
+          roundActive = false;
+          statusDiv.textContent = "Time's up! Player is out.";
+          statusDiv.className = "status warning";
+        }
+      }, 1000);
+    }
+
+    function clearTimer() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+
+    function handleLetterClick(letter) {
+      if (!roundActive) {
+        statusDiv.textContent = "Start the round before using letters.";
+        statusDiv.className = "status warning";
+        return;
+      }
+
+      if (usedLetters.has(letter)) {
+        statusDiv.textContent = "That letter is already used. Pick another one.";
+        statusDiv.className = "status warning";
+        return;
+      }
+
+      const rawWord = answerInput.value.trim();
+      if (!rawWord) {
+        statusDiv.textContent = "Type your answer in the box before pressing a letter.";
+        statusDiv.className = "status warning";
+        return;
+      }
+
+      const firstChar = rawWord[0].toUpperCase();
+      if (firstChar !== letter) {
+        statusDiv.textContent = `Your answer must start with "${letter}". It currently starts with "${firstChar}".`;
+        statusDiv.className = "status warning";
+        return;
+      }
+
+      // Mark letter used
+      usedLetters.add(letter);
+      const el = document.querySelector(`.letter[data-letter="${letter}"]`);
+      if (el) el.classList.add("used");
+
+      // Log answer
+      addLogEntry(letter, rawWord);
+
+      // Reset timer for the next player
+      resetTimer();
+      startTimer();
+      answerInput.value = "";
+      answerInput.focus();
+      statusDiv.textContent = "Good! Next player's turn.";
+      statusDiv.className = "status highlight";
+    }
+
+    function addLogEntry(letter, word) {
+      const div = document.createElement("div");
+      div.className = "log-entry";
+      div.innerHTML = `<span class="log-letter">${letter}</span>: <span class="log-word">${word}</span>`;
+      logDiv.appendChild(div);
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function clearLog() {
+      logDiv.innerHTML = "";
+    }
+
+    // If user presses Enter in the input, try to automatically trigger the right letter
+    function handleSubmitAnswer() {
+      const rawWord = answerInput.value.trim();
+      if (!rawWord) return;
+
+      const firstChar = rawWord[0].toUpperCase();
+      // Simulate clicking this letter
+      handleLetterClick(firstChar);
+    }
+
+    // Attach listeners
+    newCategoryBtn.addEventListener("click", pickRandomCategory);
+    startRoundBtn.addEventListener("click", startRound);
+    resetLettersBtn.addEventListener("click", resetLetters);
+    submitAnswerBtn.addEventListener("click", handleSubmitAnswer);
+
+    answerInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleSubmitAnswer();
+      }
+    });
+
+    // Initialize
+    createLetterButtons();
+    resetTimer();
+    statusDiv.textContent = "Click New Category to begin.";
+  </script>
+</body>
+</html>
