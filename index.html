@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Tapple-Like Word Game</title>
+  <title>Letter Clicker Word Game</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #222;
+      font-family: Garamond;
+      background: #6b705c;
       color: #fff;
       display: flex;
       justify-content: center;
@@ -16,7 +16,7 @@
     }
 
     .game {
-      background: #333;
+      background: #606c38;
       padding: 20px 24px;
       border-radius: 12px;
       box-shadow: 0 0 20px rgba(0,0,0,0.5);
@@ -44,11 +44,11 @@
     }
 
     .timer {
-      font-size: 1.4rem;
+      font-size: 2.6rem;
       font-weight: bold;
       padding: 6px 14px;
       border-radius: 999px;
-      background: #111;
+      background: #3a5a40;
       border: 2px solid #555;
       min-width: 70px;
       text-align: center;
@@ -66,7 +66,7 @@
       border: none;
       border-radius: 8px;
       padding: 8px 14px;
-      background: #1976d2;
+      background: #3a5a40;
       color: #fff;
       font-size: 0.95rem;
       transition: background 0.2s, transform 0.05s;
@@ -96,9 +96,9 @@
     }
 
     .letter {
-      background: #444;
+      background: #90a955;
       border-radius: 6px;
-      padding: 8px 0;
+      padding: 18px 0;
       text-align: center;
       font-weight: bold;
       cursor: pointer;
@@ -124,14 +124,14 @@
       gap: 12px;
       align-items: center;
       flex-wrap: wrap;
-      margin-top: 4px;
+      margin-top: 6px;
     }
 
     input[type="text"] {
       flex: 1;
-      padding: 8px 10px;
-      border-radius: 6px;
-      border: 1px solid #555;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 2px solid #555;
       background: #222;
       color: #fff;
       font-size: 0.95rem;
@@ -234,7 +234,7 @@
       "Words with double letters"
     ];
 
-    const roundTimeSeconds = 10;
+    const roundTimeSeconds = 20;
     let timer = null;
     let timeLeft = roundTimeSeconds;
     let currentCategory = null;
@@ -311,7 +311,7 @@
         if (timeLeft <= 0) {
           clearTimer();
           roundActive = false;
-          statusDiv.textContent = "Time's up! Player is out.";
+          statusDiv.textContent = "Time's up! You are out.";
           statusDiv.className = "status warning";
         }
       }, 1000);
@@ -326,7 +326,7 @@
 
     function handleLetterClick(letter) {
       if (!roundActive) {
-        statusDiv.textContent = "Start the round before using letters.";
+        statusDiv.textContent = "Start the round first!";
         statusDiv.className = "status warning";
         return;
       }
