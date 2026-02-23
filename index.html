@@ -98,9 +98,10 @@
     .letter {
       background: #90a955;
       border-radius: 6px;
-      padding: 18px 0;
+      padding: 12px 0;
       text-align: center;
       font-weight: bold;
+      font-size: 1.4rem;
       cursor: pointer;
       user-select: none;
       transition: background 0.2s, transform 0.05s, opacity 0.2s;
@@ -195,6 +196,7 @@
     <div class="controls">
       <button id="newCategoryBtn">New Category</button>
       <button id="startRoundBtn">Start Round</button>
+      <button id="resetTimerBtn" class="secondary">Reset Timer</button>
       <button id="resetLettersBtn" class="secondary">Reset Letters</button>
     </div>
 
@@ -274,6 +276,7 @@
 
     const newCategoryBtn = document.getElementById("newCategoryBtn");
     const startRoundBtn = document.getElementById("startRoundBtn");
+    const resetTimerBtn = document.getElementById("resetTimerBtn");
     const resetLettersBtn = document.getElementById("resetLettersBtn");
     const submitAnswerBtn = document.getElementById("submitAnswerBtn");
 
@@ -419,7 +422,15 @@
     startRoundBtn.addEventListener("click", startRound);
     resetLettersBtn.addEventListener("click", resetLetters);
     submitAnswerBtn.addEventListener("click", handleSubmitAnswer);
-
+        
+    resetTimerBtn.addEventListener("click", () => {
+      resetTimer();
+      startTimer();
+      statusDiv.textContent = "Timer reset.";
+      statusDiv.className = "status highlight";
+    });
+	
+    	
     answerInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
